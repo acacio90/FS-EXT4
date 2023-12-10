@@ -17,16 +17,18 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    int current_inode = 0;
+
     // Loop principal do shell
     while (1) {
         // Obtendo o comando do usuário
         char command[256];
         printf("$ ");
         fgets(command, sizeof(command), stdin);
-        /*
         if (strncmp(command, "ls", 2) == 0) {
             list_directory(fd, current_inode);
-        } else if (strncmp(command, "cat", 3) == 0) {
+        }/* else if (strncmp(command, "cat", 3) == 0) {
+        
             char *filename = command + 4;
             cat_file(fd, current_inode, filename);
         } else if (strncmp(command, "info", 4) == 0) {
