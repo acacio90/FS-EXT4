@@ -2,48 +2,67 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <stdint.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+
+void show_prompt() {
+    printf("ext4shell:[myext4image/] $ ");
+}
 
 int main(int argc, char *argv[]) {
-    // Verifique argumentos e abra o arquivo de imagem
     if (argc != 2) {
-        fprintf(stderr, "Uso: %s <imagem.img>\n", argv[0]);
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "Usage: %s <file_name>\n", argv[0]);
+        return 1;
     }
 
-    char *device = argv[1];
-    int fd = open(device, O_RDWR);
-    if (fd == -1) {
-        perror("Erro ao abrir a imagem do sistema de arquivos");
-        exit(EXIT_FAILURE);
+    const char *file_name = argv[1];
+    FILE *image = fopen(file_name, "rb");
+
+    if (image == NULL) {
+        perror("Error opening the image");
+        return 1;
     }
 
-    int current_inode = 0;
+    struct super_block_t superblock;
+    struct block_group_descriptors descriptors;
 
-    // Loop principal do shell
+    // Read the superblock and block group descriptors
+    fseek(image, SUPERBLOCK_OFFSET, SEEK_SET);
+    fread(&superblock, sizeof(struct super_block_t), 1, image);
+
+    fseek(image, GROUP_DESCRIPTORS_OFFSET, SEEK_SET);
+    fread(&descriptors, sizeof(struct block_group_descriptors), 1, image);
+
+    // Assign the appropriate value to the new s_last_mount_time field
+    snprintf(superblock.s_last_mounted, sizeof(superblock.s_last_mounted), "%d", superblock.s_mtime);
+
+    char command[256];
+
     while (1) {
-        // Obtendo o comando do usuário
-        char command[256];
-        printf("$ ");
-        fgets(command, sizeof(command), stdin);
-        if (strncmp(command, "ls", 2) == 0) {
-            list_directory(fd, current_inode);
-        }/* else if (strncmp(command, "cat", 3) == 0) {
+        show_prompt();
         
-            char *filename = command + 4;
-            cat_file(fd, current_inode, filename);
-        } else if (strncmp(command, "info", 4) == 0) {
-            show_info(fd);
-        } else if (strncmp(command, "export", 6) == 0) {
-            char *source_path = strtok(command + 7, " ");
-            char *target_path = strtok(NULL, " ");
-            export_file(fd, source_path, target_path);
-        } else if (strncmp(command, "exit", 4) == 0) {
-            close(fd);
-            exit(EXIT_SUCCESS);
-        } else {
-            printf("Comando não reconhecido.\n");
+        if (fgets(command, sizeof(command), stdin) == NULL) {
+            break; // Ctrl+D or read error, exit the loop
         }
-    */
+
+        // Remove the newline character
+        command[strcspn(command, "\n")] = '\0';
+
+        // Here you can parse and execute user commands
+        // Implement shell logic as needed
+
+        if (strcmp(command, "info") == 0) {
+            ext4_info(&superblock);
+        } else if (strcmp(command, "exit") == 0) {
+            break; // Exit the loop
+        } else {
+            printf("Unknown command: %s\n", command);
+        }
     }
+
+    fclose(image);
+
     return 0;
 }
