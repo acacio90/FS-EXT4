@@ -10,6 +10,30 @@
 #include <time.h>
 #include <unistd.h>
 
+extern int current_directory_inode;
+
+// Constantes para tipos de arquivo no sistema de arquivos EXT4
+#define EXT4_S_IFREG  0x8000 // Arquivo regular
+#define EXT4_S_IFDIR  0x4000 // Diretório
+#define EXT4_S_IFCHR  0x2000 // Dispositivo de caractere
+#define EXT4_S_IFBLK  0x6000 // Dispositivo de bloco
+#define EXT4_S_IFIFO  0x1000 // Pipe FIFO
+#define EXT4_S_IFSOCK 0xC000 // Socket
+#define S_IFMT  0xF000
+
+// Constantes para permissões no sistema de arquivos EXT4
+#define EXT4_S_IRUSR 0x0100 // Leitura pelo dono
+#define EXT4_S_IWUSR 0x0080 // Escrita pelo dono
+#define EXT4_S_IXUSR 0x0040 // Execução pelo dono
+#define EXT4_S_IRGRP 0x0020 // Leitura pelo grupo
+#define EXT4_S_IWGRP 0x0010 // Escrita pelo grupo
+#define EXT4_S_IXGRP 0x0008 // Execução pelo grupo
+#define EXT4_S_IROTH 0x0004 // Leitura por outros
+#define EXT4_S_IWOTH 0x0002 // Escrita por outros
+#define EXT4_S_IXOTH 0x0001 // Execução por outros
+
+#define EXT4_ROOT_INO 2  // ou o valor correto para o inode raiz no seu sistema de arquivos
+
 #define EXT4_NAME_LENGTH 255
 #define EXT4_NUM_BLOCKS 15
 #define SUPERBLOCK_OFFSET 1024
